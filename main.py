@@ -2,6 +2,9 @@ import pygame
 import sys
 import camera
 import numpy as np
+import my_math
+from objects.cube import Cube
+from pygame_ext.renderer_3d import Renderer3D
 
 # 1. Настройки окна
 SCREEN_WIDTH = 800
@@ -19,6 +22,9 @@ clock = pygame.time.Clock()
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
+
+# Создаем шрифт для HUD (название системного шрифта, размер в пикселях)
+hud_font = pygame.font.SysFont('Consolas', 18)
 
 # # Точка прямо перед нами
 # point_coords, _, visible = camera.project_3d_to_2d(np.array([0, 0, 15], dtype=float), FOCAL, SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -55,16 +61,6 @@ GREEN = (0, 255, 0)
 camera_pos = np.array([0,0,0], dtype=float)
 camera_velocity = np.array([0.0, 0.0, 0.0])
 
-POINTS_COORDS1 = np.array([-5, -5, 15], dtype=float) # Передняя грань (Z=15)
-POINTS_COORDS2 = np.array([ 5, -5, 15], dtype=float)
-POINTS_COORDS3 = np.array([-5,  5, 15], dtype=float)
-POINTS_COORDS4 = np.array([ 5,  5, 15], dtype=float)
-
-POINTS_COORDS5 = np.array([-5, -5, 25], dtype=float) # Задняя грань (Z=25)
-POINTS_COORDS6 = np.array([ 5, -5, 25], dtype=float)
-POINTS_COORDS7 = np.array([-5,  5, 25], dtype=float)
-POINTS_COORDS8 = np.array([ 5,  5, 25], dtype=float)
-
 speed = 0.1
 
 pygame.mouse.set_visible(False)
@@ -81,9 +77,10 @@ mouse_sensitivity = 0.002 # Чувствительность мыши
 # 1. Получаем смещение мыши с прошлого кадра (dx, dy)
 # dx - движение по горизонтали, dy - по вертикали
 
+cube1 = Cube(np.array([255, 255, 0]), np.array([-20, 0, 20], dtype=float), 10)
+cube2 = Cube(np.array([255, 0, 255]), np.array([20, 0, 20], dtype=float), 10)
 
-
-
+renderer_3d = Renderer3D(SCREEN_WIDTH, SCREEN_HEIGHT)
 # Главный цикл
 running = True
 while running:
@@ -91,6 +88,11 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        
+        if event.type == pygame.MOUSEWHEEL:
+            FOCAL += event.y * 20
+            if FOCAL < 0:
+                FOCAL = 0
 
     keys = pygame.key.get_pressed()
     mouse_dx, mouse_dy = pygame.mouse.get_rel()
@@ -99,8 +101,12 @@ while running:
     # Обнуляем скорость каждый кадр
     camera_velocity = np.array([0.0, 0.0, 0.0])
 
-    camera_yaw -= mouse_sensitivity * mouse_dx
-    camera_pitch += mouse_sensitivity * mouse_dy
+    camera_yaw -= (mouse_sensitivity * mouse_dx)
+    camera_yaw %= 2 * np.pi
+    # camera_yaw = max(-(np.pi), min(np.pi, camera_yaw))
+    camera_pitch += (mouse_sensitivity * mouse_dy)
+    # camera_pitch %= 2 * np.pi
+    camera_pitch = max(-(np.pi/2), min(np.pi/2, camera_pitch))
 
 
 
@@ -137,8 +143,9 @@ while running:
     if keys[pygame.K_SPACE]:
         camera_velocity[1] += speed
     
-    if keys[pygame.K_LCTRL]:
+    if keys[pygame.K_LSHIFT]:
         camera_velocity[1] -= speed
+
 
     # # --- Ось X (Влево / Вправо) ---
     # if keys[pygame.K_a]:
@@ -166,14 +173,6 @@ while running:
     # pygame.draw.line(screen, WHITE, (100, 100), (200, 200), 2)
 
     # ==========================================
-    point_coords1, _, visible = camera.project_3d_to_2d(POINTS_COORDS1, FOCAL, SCREEN_WIDTH, SCREEN_HEIGHT, camera_pos, camera_yaw, camera_pitch)
-    point_coords2, _, visible = camera.project_3d_to_2d(POINTS_COORDS2, FOCAL, SCREEN_WIDTH, SCREEN_HEIGHT, camera_pos, camera_yaw, camera_pitch)
-    point_coords3, _, visible = camera.project_3d_to_2d(POINTS_COORDS3, FOCAL, SCREEN_WIDTH, SCREEN_HEIGHT, camera_pos, camera_yaw, camera_pitch)
-    point_coords4, _, visible = camera.project_3d_to_2d(POINTS_COORDS4, FOCAL, SCREEN_WIDTH, SCREEN_HEIGHT, camera_pos, camera_yaw, camera_pitch)
-    point_coords5, _, visible = camera.project_3d_to_2d(POINTS_COORDS5, FOCAL, SCREEN_WIDTH, SCREEN_HEIGHT, camera_pos, camera_yaw, camera_pitch)
-    point_coords6, _, visible = camera.project_3d_to_2d(POINTS_COORDS6, FOCAL, SCREEN_WIDTH, SCREEN_HEIGHT, camera_pos, camera_yaw, camera_pitch)
-    point_coords7, _, visible = camera.project_3d_to_2d(POINTS_COORDS7, FOCAL, SCREEN_WIDTH, SCREEN_HEIGHT, camera_pos, camera_yaw, camera_pitch)
-    point_coords8, _, visible = camera.project_3d_to_2d(POINTS_COORDS8, FOCAL, SCREEN_WIDTH, SCREEN_HEIGHT, camera_pos, camera_yaw, camera_pitch)
     # POINTS_COORDS1 += camera_velocity
     # POINTS_COORDS2 += camera_velocity
     # POINTS_COORDS3 += camera_velocity
@@ -182,37 +181,23 @@ while running:
     # POINTS_COORDS6 += camera_velocity
     # POINTS_COORDS7 += camera_velocity
     # POINTS_COORDS8 += camera_velocity
+    renderer_3d.draw_object(cube1, screen, FOCAL, camera_pos, camera_yaw, camera_pitch)
+    renderer_3d.draw_object(cube2, screen, FOCAL, camera_pos, camera_yaw, camera_pitch)
 
-    
+    fps_text = f"FPS: {int(clock.get_fps())}"
+    camera_pos_text = f"camera_pos: {np.round(camera_pos, 2)}"
+    camera_rotate_text = f"camera_yaw: {round(my_math.rad2grad(camera_yaw), 2)}° camera_pitch: {round(my_math.rad2grad(camera_pitch), 2)}°"
+    focal_text = f"focal_lenght: {FOCAL}"
 
-    if point_coords1 is not None and point_coords2 is not None:
-        pygame.draw.line(screen, WHITE, point_coords1, point_coords2, 2)
-    if point_coords2 is not None and point_coords4 is not None:
-        pygame.draw.line(screen, WHITE, point_coords2, point_coords4, 2)
-    if point_coords3 is not None and point_coords4 is not None:
-        pygame.draw.line(screen, WHITE, point_coords3, point_coords4, 2)
-    if point_coords1 is not None and point_coords3 is not None:
-        pygame.draw.line(screen, WHITE, point_coords1, point_coords3, 2)
+    fps_surface = hud_font.render(fps_text, True, WHITE)
+    camera_pos_surface = hud_font.render(camera_pos_text, True, WHITE)
+    camera_rotate_surface = hud_font.render(camera_rotate_text, True, WHITE)
+    focal_surface = hud_font.render(focal_text, True, WHITE)
 
-    if point_coords5 is not None and point_coords6 is not None:
-        pygame.draw.line(screen, WHITE, point_coords5, point_coords6, 2)
-    if point_coords6 is not None and point_coords8 is not None:
-        pygame.draw.line(screen, WHITE, point_coords6, point_coords8, 2)
-    if point_coords7 is not None and point_coords8 is not None:
-        pygame.draw.line(screen, WHITE, point_coords7, point_coords8, 2)
-    if point_coords5 is not None and point_coords7 is not None:
-        pygame.draw.line(screen, WHITE, point_coords5, point_coords7, 2)
-
-    if point_coords1 is not None and point_coords5 is not None:
-        pygame.draw.line(screen, WHITE, point_coords1, point_coords5, 2)
-    if point_coords2 is not None and point_coords6 is not None:
-        pygame.draw.line(screen, WHITE, point_coords2, point_coords6, 2)
-    if point_coords3 is not None and point_coords7 is not None:
-        pygame.draw.line(screen, WHITE, point_coords3, point_coords7, 2)
-    if point_coords4 is not None and point_coords8 is not None:
-        pygame.draw.line(screen, WHITE, point_coords4, point_coords8, 2)
-
-    
+    screen.blit(fps_surface, (0, 20))
+    screen.blit(camera_pos_surface, (0, 40))
+    screen.blit(camera_rotate_surface, (0, 60))
+    screen.blit(focal_surface, (0, 80))
 
     # 4. Обновление экрана
     pygame.display.flip()
