@@ -7,7 +7,7 @@ class Cube(BaseObjects3D):
 
         self._center: np.ndarray = center
         self._radius: float = radius
-
+        
     def _create(self):
         if not self._is_created:
 

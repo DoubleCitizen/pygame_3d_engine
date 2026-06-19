@@ -21,6 +21,15 @@ class BaseObjects3D:
 
     def get_color(self) -> np.ndarray:
         return self._color
+    
+    def get_facets_normals(self) -> list[np.ndarray]:
+        normals: list = []
+        for face in self._faces:
+            AB = self.get_pos3d()[face[0]] - self.get_pos3d()[face[1]]
+            BC = self.get_pos3d()[face[0]] - self.get_pos3d()[face[1]]
+            N = np.cross(AB, BC)
+            normals.append(N)
+        return normals
 
     def get_pos3d(self) -> tuple[np.ndarray]:
         if not self._is_created:
