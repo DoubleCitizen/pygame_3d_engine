@@ -6,7 +6,7 @@ class BaseObjects3D:
         self._is_created = False
         self._color = color
         self._coords3d: list[np.ndarray] = []
-        self._coords3d_etalon: list[np.ndarray] = []
+        self._coords3d_local: list[np.ndarray] = []
         self._edges: tuple[tuple] = ()
         self._faces: tuple[tuple] = ()
         self._yaw: float = 0
@@ -25,18 +25,16 @@ class BaseObjects3D:
     def get_pos3d(self) -> tuple[np.ndarray]:
         if not self._is_created:
             self._create()
-            if not self._coords3d_etalon:
-                self._coords3d_etalon = copy.deepcopy(self._coords3d)
+            if not self._coords3d_local:
+                self._coords3d_local = copy.deepcopy(self._coords3d) - self._center
             self._is_created = True
         return self._coords3d
     
     def set_rotate(self, yaw, pitch):
         self._yaw = yaw
         self._pitch = pitch
-        for i in range(len(self._coords3d_etalon)):
-            Pworld = self._coords3d_etalon[i]
-            Plocal = Pworld - self._center
-            X, Y, Z = Plocal
+        for i in range(len(self._coords3d_local)):
+            X, Y, Z = self._coords3d_local[i]
             # Вращение влево-вправо
             X_new = X * np.cos(yaw) - Z * np.sin(yaw)
             Z_new = X * np.sin(yaw) + Z * np.cos(yaw)
