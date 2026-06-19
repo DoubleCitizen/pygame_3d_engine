@@ -23,5 +23,6 @@ class Cube(BaseObjects3D):
             self._coords3d.append(np.array([+x0, +x0, +x0], dtype=float) + self._center)
 
             self._edges = ((0, 1), (1, 3), (3, 2), (0, 2), (4, 5), (5, 7), (7, 6), (4, 6), (0, 4), (1, 5), (2, 6), (3, 7))
+            self._faces = ((0, 1, 3, 2), (4, 5, 7, 6), (0, 4, 6, 2), (0, 1, 5, 4), (1, 5, 7, 3), (2, 3, 7, 6))
 
             self._is_created = True

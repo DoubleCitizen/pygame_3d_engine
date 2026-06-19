@@ -182,7 +182,9 @@ while running:
     # POINTS_COORDS7 += camera_velocity
     # POINTS_COORDS8 += camera_velocity
     renderer_3d.draw_object(cube1, screen, FOCAL, camera_pos, camera_yaw, camera_pitch)
+    cube1.rotate_in(my_math.grad2rad(1))
     renderer_3d.draw_object(cube2, screen, FOCAL, camera_pos, camera_yaw, camera_pitch)
+    cube2.rotate_in(0, my_math.grad2rad(1))
 
     fps_text = f"FPS: {int(clock.get_fps())}"
     camera_pos_text = f"camera_pos: {np.round(camera_pos, 2)}"

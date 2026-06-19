@@ -15,3 +15,6 @@ class Renderer3D:
         for edge in obj.get_edges():
             if points2d_coords[edge[0]] is not None and points2d_coords[edge[1]] is not None:
                 pygame.draw.line(screen, obj.get_color(), points2d_coords[edge[0]], points2d_coords[edge[1]], 2)
+        for face in obj.get_faces():
+            if points2d_coords[face[0]] is not None and points2d_coords[face[1]] is not None and points2d_coords[face[2]] is not None and points2d_coords[face[3]] is not None:
+                pygame.draw.polygon(screen, obj.get_color(), [points2d_coords[face[0]], points2d_coords[face[1]], points2d_coords[face[2]], points2d_coords[face[3]]])
