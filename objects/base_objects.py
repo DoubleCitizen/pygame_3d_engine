@@ -14,7 +14,7 @@ class BaseObjects3D:
         self._yaw: float = 0
         self._pitch: float = 0
         self._roll: float = 0
-        self._center: float = 0
+        self._center: np.ndarray = 0
 
     def get_edges(self) -> tuple[tuple]:
         return self._edges
@@ -34,6 +34,9 @@ class BaseObjects3D:
             N = np.cross(AB, BC)
             normals.append(N)
         return normals
+
+    def get_center(self) -> np.ndarray:
+        return self._center
 
     def get_pos3d(self) -> list[np.ndarray]:
         if not self._is_created:
