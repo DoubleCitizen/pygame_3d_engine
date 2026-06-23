@@ -16,19 +16,19 @@ class Renderer3D:
         distances_and_id: list[list] = []
         for i, render_task in enumerate(self._queue_render_task):
             obj, screen, focal_lenght, camera_pos, angle_yaw, angle_pitch = render_task
-            distance = my_math.get_distance(obj.get_center(), camera_pos)
+            distance = my_math.get_distance(obj.get_pos(), camera_pos)
             distances_and_id.append((i, distance))
 
         distances_and_id.sort(key=lambda x: x[1], reverse=True)
 
         for dist_id in distances_and_id:
-            
+
             index, distance = dist_id
 
             obj, screen, focal_lenght, camera_pos, angle_yaw, angle_pitch = self._queue_render_task[index]
 
             points2d_coords = []
-            point3d_coords = obj.get_pos3d()  # Тессеракт отдаст уже готовые 3D проекции!
+            point3d_coords = obj.get_vertices()
 
             # Проецируем 3D точки на 2D экран камеры
             for point3d_coord in point3d_coords:
@@ -41,36 +41,14 @@ class Renderer3D:
 
             # Отрисовка полигонов (если они есть)
             for face, edge, normal in zip(faces, edges, normals):
-                p0 = points2d_coords[face[0]]
-                p1 = points2d_coords[face[1]]
-                p2 = points2d_coords[face[2]]
-
-                # Проверяем, что все точки грани видны на экране
-                if (p0 is not None and points2d_coords[face[1]] is not None and 
-                    points2d_coords[face[2]] is not None and points2d_coords[face[3]] is not None):
-                    
-                    # Считаем два 2D-вектора прямо на плоскости экрана
-                    # Вектор от первой точки ко второй
-                    dx1 = p1[0] - p0[0]
-                    dy1 = p1[1] - p0[1]
-                    # Вектор от второй точки к третьей
-                    dx2 = p2[0] - p1[1] # Опечатка у тебя в индексах face могла быть, берем p2 и p1
-                    dx2 = p2[0] - p1[0]
-                    dy2 = p2[1] - p1[1]
-
-                    # Косое (векторное) произведение в 2D пространстве экрана
-                    # Оно показывает направление закрутки вершин (Winding Order)
-                    cross_2d = dx1 * dy2 - dy1 * dx2
-
-                    # Если оно меньше нуля — грань повернута к нам лицевой стороной
-                    # (Если куб исчезнет, а изнанка останется — просто поменяй знак на > 0)
-                    if cross_2d < 0:
-                        pygame.draw.polygon(screen, obj.get_color(), [
-                            points2d_coords[face[0]], 
-                            points2d_coords[face[1]], 
-                            points2d_coords[face[2]], 
-                            points2d_coords[face[3]]
-                        ])
+                if points2d_coords[face[0]] is not None and points2d_coords[face[1]] is not None and points2d_coords[face[2]] is not None and \
+                points2d_coords[face[3]] is not None:
+                    pygame.draw.polygon(screen, obj.get_color(), [
+                        points2d_coords[face[0]],
+                        points2d_coords[face[1]],
+                        points2d_coords[face[2]],
+                        points2d_coords[face[3]]
+                    ])
                 # Если у объекта нет граней (только каркас), рисуем линиями
             if not faces:
                 for edge in edges:

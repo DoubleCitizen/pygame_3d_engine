@@ -4,6 +4,7 @@ import numpy as np
 import my_math
 from objects.cube import Cube
 from objects.camera import Camera
+from objects.surface import Surface
 from objects.tesseract import Tesseract
 from pygame_ext.renderer_3d import Renderer3D
 
@@ -44,6 +45,7 @@ pygame.event.set_grab(True)
 cube1 = Cube(np.array([255, 255, 0]), np.array([-20, 0, 20], dtype=float), 10)
 cube2 = Cube(np.array([255, 0, 255]), np.array([20, 0, 20], dtype=float), 10)
 cube3 = Cube(np.array([35, 40, 255]), np.array([0, 0, 20], dtype=float), 10)
+surface = Surface(np.array([35, 40, 80]), np.array([0, -1, 0], dtype=float), 50, 2)
 tesseract = Tesseract(np.array([20, 255, 30]), np.array([0, 0, 120, 0], dtype=float), 5)
 
 renderer_3d = Renderer3D(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -101,6 +103,7 @@ while running:
     cube3.rotate_in(0, 0, my_math.grad2rad(1))
     renderer_3d.add_queue_render_task(tesseract, screen, FOCAL, camera.pos, camera.yaw, camera.pitch)
     tesseract.rotate_in(hyper_yaw=0.01, hyper_roll=0.005)
+    renderer_3d.add_queue_render_task(surface, screen, FOCAL, camera.pos, camera.yaw, camera.pitch)
 
     renderer_3d.draw_objects()
 

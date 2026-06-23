@@ -5,11 +5,13 @@ import copy
 class Tesseract(BaseObjects3D):
     def __init__(self, color: np.ndarray, center4d: np.ndarray, radius: float):
         super().__init__(color)
-        self._center4d: np.ndarray = center4d
+        self._pos4d: np.ndarray = center4d
         self._radius: float = radius
-        # Заглушка для базового класса, чтобы не падал при проверках центра
-        self._center = center4d[:3] 
-        
+        self._pos = center4d[:3]
+
+        self._coords4d: list[np.ndarray] = []
+        self._coords4d_local: list[np.ndarray] = []
+
         self._hyper_yaw: float = 0
         self._hyper_pitch: float = 0
         self._hyper_roll: float = 0
@@ -37,9 +39,7 @@ class Tesseract(BaseObjects3D):
             self._coords4d_local.append(np.array([-x0, +x0, +x0, +x0], dtype=float))
             self._coords4d_local.append(np.array([+x0, +x0, +x0, +x0], dtype=float))
 
-            # Инициализируем списки мировых координат нужной длины
-            
-            self._coords3d = [np.zeros(3) for _ in range(16)]
+            self._coords = [np.zeros(3) for _ in range(16)]
             self._coords4d = [np.zeros(4) for _ in range(16)]
 
             # Твои идеальные ребра и грани
@@ -58,11 +58,10 @@ class Tesseract(BaseObjects3D):
             # )
             self._is_created = True
 
-    def get_pos3d(self) -> list[np.ndarray]:
+    def get_vertices(self) -> list[np.ndarray]:
         if not self._is_created:
             self._create()
-        # Возвращаем актуальные спроецированные 3D точки, которые посчитал метод set_rotate
-        return self._coords3d
+        return self._coords
 
     def set_rotate(self, yaw, pitch, roll, hyper_yaw=0, hyper_pitch=0, hyper_roll=0):
         self._yaw = yaw
@@ -105,7 +104,7 @@ class Tesseract(BaseObjects3D):
             W, X = W_new, X_new
 
             # Перенос 4D точки в мировые координаты
-            self._coords4d[i] = np.array([X, Y, Z, W], dtype=float) + self._center4d
+            self._coords4d[i] = np.array([X, Y, Z, W], dtype=float) + self._pos4d
 
             # --- ПЕРСПЕКТИВНАЯ ПРОЕКЦИЯ (4D -> 3D) ---
             # Сжимаем четвертое измерение W в привычное трехмерное пространство Z
@@ -113,8 +112,7 @@ class Tesseract(BaseObjects3D):
             Y_3d = (Y * focal_4d) / (W + D)
             Z_3d = (Z * focal_4d) / (W + D)
 
-            # Сохраняем результат + 3D центр объекта в мире
-            self._coords3d[i] = np.array([X_3d, Y_3d, Z_3d], dtype=float) + self._center4d[:3]
+            self._coords[i] = np.array([X_3d, Y_3d, Z_3d], dtype=float) + self._pos4d[:3]
 
     def rotate_in(self, yaw: float = 0, pitch: float = 0, roll: float = 0, hyper_yaw: float = 0, hyper_pitch: float = 0, hyper_roll: float = 0):
         self._yaw += yaw
