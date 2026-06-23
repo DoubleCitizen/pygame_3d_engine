@@ -4,6 +4,7 @@ import camera
 import numpy as np
 import my_math
 from objects.cube import Cube
+from objects.tesseract import Tesseract
 from pygame_ext.renderer_3d import Renderer3D
 
 # 1. Настройки окна
@@ -77,8 +78,10 @@ mouse_sensitivity = 0.002 # Чувствительность мыши
 # 1. Получаем смещение мыши с прошлого кадра (dx, dy)
 # dx - движение по горизонтали, dy - по вертикали
 
-cube1 = Cube(np.array([255, 255, 0]), np.array([-20, 0, 20], dtype=float), 10)
-cube2 = Cube(np.array([255, 0, 255]), np.array([20, 0, 20], dtype=float), 10)
+cube1 = Cube(np.array([255, 255, 0]), np.array([-20, 0, 20], dtype=float), 1)
+cube2 = Cube(np.array([255, 0, 255]), np.array([20, 0, 20], dtype=float), 1)
+cube3 = Cube(np.array([35, 40, 255]), np.array([0, 0, 20], dtype=float), 1)
+tesseract = Tesseract(np.array([20, 255, 30]), np.array([0, 0, 120, 0], dtype=float), 5)
 
 renderer_3d = Renderer3D(SCREEN_WIDTH, SCREEN_HEIGHT)
 # Главный цикл
@@ -185,6 +188,10 @@ while running:
     cube1.rotate_in(my_math.grad2rad(1))
     renderer_3d.draw_object(cube2, screen, FOCAL, camera_pos, camera_yaw, camera_pitch)
     cube2.rotate_in(0, my_math.grad2rad(1))
+    renderer_3d.draw_object(cube3, screen, FOCAL, camera_pos, camera_yaw, camera_pitch)
+    cube3.rotate_in(0, 0, my_math.grad2rad(1))
+    renderer_3d.draw_object(tesseract, screen, FOCAL, camera_pos, camera_yaw, camera_pitch)
+    tesseract.rotate_in(hyper_yaw=0.01, hyper_roll=0.005)
 
     fps_text = f"FPS: {int(clock.get_fps())}"
     camera_pos_text = f"camera_pos: {np.round(camera_pos, 2)}"

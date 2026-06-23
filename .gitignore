@@ -25,3 +25,7 @@ Thumbs.db
 # Archives
 *.zip
 *.tar.gz
+
+
+project_code.txt
+read_py.py

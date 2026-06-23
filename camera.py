@@ -32,7 +32,7 @@ def project_3d_to_2d_scipy(XYZ: np.ndarray, focal_length, screen_width, screen_h
 
     return np.array([screen_x, screen_y], dtype=float), np.array([X, Y, Z], dtype=float), is_visible
 
-def project_3d_to_2d_linear(XYZ: np.ndarray, focal_length, screen_width, screen_height, camera_pos: np.ndarray, angle_yaw: float = 0, angle_pitch: float = 0) -> tuple[None | np.ndarray, None | np.ndarray, bool]:
+def project_3d_to_2d_linear(XYZ: np.ndarray, focal_length, screen_width, screen_height, camera_pos: np.ndarray, angle_yaw: float = 0, angle_pitch: float = 0, angle_roll: float = 0) -> tuple[None | np.ndarray, None | np.ndarray, bool]:
     
     # 1. Вычитаем позицию камеры (делаем камеру центром мира)
     relative_XYZ = XYZ - camera_pos
@@ -41,6 +41,7 @@ def project_3d_to_2d_linear(XYZ: np.ndarray, focal_length, screen_width, screen_
     # 2. Поворачиваем мир в противоположную сторону от взгляда мыши
     yaw = -angle_yaw
     pitch = -angle_pitch
+    roll = angle_roll
 
     # Вращение влево-вправо
     X_new = X * np.cos(yaw) - Z * np.sin(yaw)
@@ -51,6 +52,11 @@ def project_3d_to_2d_linear(XYZ: np.ndarray, focal_length, screen_width, screen_
     Y_new = Y * np.cos(pitch) - Z * np.sin(pitch)
     Z_new = Y * np.sin(pitch) + Z * np.cos(pitch)
     Y, Z = Y_new, Z_new
+
+    # # Вращение в бока влево-вправо (сверхну-вниз)
+    Y_new = Y * np.cos(roll) - X * np.sin(roll)
+    X_new = Y * np.sin(roll) + X * np.cos(roll)
+    Y, X = Y_new, X_new
 
     if Z <= 0:
         Z = 0.00000001
@@ -65,6 +71,16 @@ def project_3d_to_2d_linear(XYZ: np.ndarray, focal_length, screen_width, screen_
     is_visible = (0 <= screen_x <= screen_width) and (0 <= screen_y <= screen_height)
     
     return np.array([screen_x, screen_y], dtype=float), np.array([X, Y, Z], dtype=float), is_visible
+
+def project_4d_to_3d(XYZW: np.ndarray, focal_length_4d, D=3.0):
+    X, Y, Z, W = XYZW
+    
+    # Сжимаем 4D в 3D за счет гипер-перспективы W
+    X_3d = (X * focal_length_4d) / (W + D)
+    Y_3d = (Y * focal_length_4d) / (W + D)
+    Z_3d = (Z * focal_length_4d) / (W + D)
+    
+    return np.array([X_3d, Y_3d, Z_3d], dtype=float)
 
 def project_3d_to_2d_matrix(XYZ: np.ndarray, focal_length, screen_width, screen_height, camera_pos: np.ndarray, angle_yaw: float = 0, angle_pitch: float = 0) -> tuple[None | np.ndarray, None | np.ndarray, bool]:
     # 1. Вычитаем позицию камеры (делаем камеру центром мира)
