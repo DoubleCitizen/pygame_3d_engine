@@ -172,11 +172,60 @@ class CameraPipelineScene(ThreeDScene):
                                   matrix, code_box)))
 
     def act_pitch(self):
-        self.act_stub(
-            "Шаг 3: Поворот Pitch (вокруг X)",
-            CODE_PITCH,
-            highlight_lines=[3, 4, 5],
+        title = Text("Шаг 3: Поворот Pitch (вокруг X)", font_size=32, color=BLUE)
+        title.to_edge(UP)
+        self.play(Write(title))
+
+        # Side 2D view: ZY plane
+        axes2d = Axes(
+            x_range=[-3, 3], y_range=[-3, 3],
+            x_length=5, y_length=5,
+            axis_config={"color": GREY, "include_tip": True},
         )
+        axes2d.scale(0.75).to_edge(LEFT, buff=0.5)
+        z_lbl = Text("Z", font_size=20).next_to(axes2d.x_axis.get_end(), RIGHT, buff=0.1)
+        y_lbl = Text("Y", font_size=20).next_to(axes2d.y_axis.get_end(), UP, buff=0.1)
+        view_lbl = Text("Вид сбоку (ZY)", font_size=20, color=GREY_B).next_to(axes2d, DOWN, buff=0.2)
+
+        self.play(Create(axes2d), Write(z_lbl), Write(y_lbl), Write(view_lbl))
+
+        pitch_tracker = ValueTracker(0)
+        forward_arrow = always_redraw(lambda: Arrow(
+            start=axes2d.c2p(0, 0),
+            end=axes2d.c2p(
+                 np.cos(pitch_tracker.get_value()) * 2,
+                 np.sin(pitch_tracker.get_value()) * 2
+            ),
+            color=YELLOW, buff=0, stroke_width=4
+        ))
+        point_dot = always_redraw(lambda: Dot(
+            axes2d.c2p(
+                 np.cos(pitch_tracker.get_value()) * 1.5,
+                 np.sin(pitch_tracker.get_value()) * 1.5
+            ),
+            color=GREEN, radius=0.1
+        ))
+
+        self.play(GrowArrow(forward_arrow), FadeIn(point_dot))
+
+        matrix = MathTex(
+            r"R_x = \begin{pmatrix} 1 & 0 & 0 \\ 0 & \cos\phi & -\sin\phi \\ 0 & \sin\phi & \cos\phi \end{pmatrix}",
+            font_size=28
+        ).next_to(title, DOWN, buff=0.35).shift(LEFT * 1.5)
+        self.play(Write(matrix))
+
+        self.play(pitch_tracker.animate.set_value(PI / 4), run_time=2, rate_func=smooth)
+        self.wait(0.5)
+        self.play(pitch_tracker.animate.set_value(-PI / 4), run_time=1.5, rate_func=smooth)
+        self.wait(0.5)
+        self.play(pitch_tracker.animate.set_value(0), run_time=1, rate_func=smooth)
+
+        code_box = make_code_box(CODE_PITCH, highlight_lines=[3, 4, 5])
+        self.play(FadeIn(code_box))
+        self.wait(2)
+
+        self.play(FadeOut(VGroup(title, axes2d, z_lbl, y_lbl, view_lbl,
+                                  forward_arrow, point_dot, matrix, code_box)))
 
     def act_projection(self):
         self.act_stub(
