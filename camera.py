@@ -72,6 +72,28 @@ def project_3d_to_2d_linear(XYZ: np.ndarray, focal_length, screen_width, screen_
     
     return np.array([screen_x, screen_y], dtype=float), np.array([X, Y, Z], dtype=float), is_visible
 
+def world_to_camera(XYZ: np.ndarray, camera_pos: np.ndarray, angle_yaw: float = 0, angle_pitch: float = 0) -> np.ndarray:
+    X, Y, Z = XYZ - camera_pos
+    yaw = -angle_yaw
+    pitch = -angle_pitch
+
+    X_new = X * np.cos(yaw) - Z * np.sin(yaw)
+    Z_new = X * np.sin(yaw) + Z * np.cos(yaw)
+    X, Z = X_new, Z_new
+
+    Y_new = Y * np.cos(pitch) - Z * np.sin(pitch)
+    Z_new = Y * np.sin(pitch) + Z * np.cos(pitch)
+    Y, Z = Y_new, Z_new
+
+    return np.array([X, Y, Z], dtype=float)
+
+
+def camera_to_screen(cam_xyz: np.ndarray, focal: float, screen_width: int, screen_height: int) -> tuple:
+    x = screen_width  / 2 + (cam_xyz[0] * focal) / cam_xyz[2]
+    y = screen_height / 2 - (cam_xyz[1] * focal) / cam_xyz[2]
+    return (x, y)
+
+
 def project_4d_to_3d(XYZW: np.ndarray, focal_length_4d, D=3.0):
     X, Y, Z, W = XYZW
     

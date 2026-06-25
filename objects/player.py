@@ -1,20 +1,16 @@
 import numpy as np
+from objects.camera import Camera
 import pygame
 
-class Camera:
-    def __init__(self, pos: np.ndarray = np.array([0.0, 0.0, 0.0], dtype=float), focal_length: float = 400.0):
-        self.pos: np.ndarray = pos
-        self.focal_length: float = focal_length
-        
-        # Углы поворота (накапливаем внутри класса)
-        self.yaw: float = 0.0   # Влево-вправо
-        self.pitch: float = 0.0 # Вверх-вниз
-        
-        # Настройки чувствительности и скорости
+class Player:
+    def __init__(self, pos: np.ndarray, camera: Camera, yaw: float = 0, pitch: float = 0):
+        self._pos: np.ndarray = np.array([0, 0, 0], dtype=float)
+        self._yaw: float = 0
+        self._pitch: float = 0
         self.mouse_sensitivity: float = 0.002
         self.speed: float = 0.1
         self.velocity: np.ndarray = np.array([0.0, 0.0, 0.0])
-
+    
     def handle_input(self, keys, mouse_dx, mouse_dy):
         """Собирает ввод с мыши и клавиатуры и считает скорость движения."""
         # 1. Повороты от мыши

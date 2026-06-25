@@ -12,6 +12,8 @@ __pycache__/
 # Distribution / packaging
 dist/
 build/
+media/
+docs/
 *.egg-info/
 
 # IDE
@@ -29,3 +31,5 @@ Thumbs.db
 
 project_code.txt
 read_py.py
+1.py
+manim_camera_explanation.py

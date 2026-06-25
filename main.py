@@ -45,7 +45,7 @@ pygame.event.set_grab(True)
 cube1 = Cube(np.array([255, 255, 0]), np.array([-20, 0, 20], dtype=float), 10)
 cube2 = Cube(np.array([255, 0, 255]), np.array([20, 0, 20], dtype=float), 10)
 cube3 = Cube(np.array([35, 40, 255]), np.array([0, 0, 20], dtype=float), 10)
-surface = Surface(np.array([35, 40, 80]), np.array([0, -1, 0], dtype=float), 50, 2)
+surface = Surface(np.array([35, 40, 80]), np.array([0, -5, 0], dtype=float), 50, 2)
 tesseract = Tesseract(np.array([20, 255, 30]), np.array([0, 0, 120, 0], dtype=float), 5)
 
 renderer_3d = Renderer3D(SCREEN_WIDTH, SCREEN_HEIGHT)
