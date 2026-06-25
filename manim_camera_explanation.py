@@ -228,11 +228,80 @@ class CameraPipelineScene(ThreeDScene):
                                   forward_arrow, point_dot, matrix, code_box)))
 
     def act_projection(self):
-        self.act_stub(
-            "Шаг 4: Перспективная проекция",
-            CODE_PROJECTION,
-            highlight_lines=[1, 2],
+        title = Text("Шаг 4: Перспективная проекция", font_size=32, color=BLUE)
+        title.to_edge(UP)
+        self.play(Write(title))
+
+        # Side view diagram: camera at origin, screen plane at z=f, point at z=Z
+        focal = 2.5
+        point_z = 4.5
+        point_x = 1.5
+
+        axes2d = Axes(
+            x_range=[-2.5, 2.5], y_range=[-0.5, 5.5],
+            x_length=4.5, y_length=5,
+            axis_config={"color": GREY, "include_tip": True},
         )
+        axes2d.scale(0.75).to_edge(LEFT, buff=0.5)
+        x_ax_lbl = Text("X", font_size=20).next_to(axes2d.x_axis.get_end(), RIGHT, buff=0.1)
+        z_ax_lbl = Text("Z", font_size=20).next_to(axes2d.y_axis.get_end(), UP, buff=0.1)
+
+        self.play(Create(axes2d), Write(x_ax_lbl), Write(z_ax_lbl))
+
+        # Camera (pinhole) at origin
+        cam_dot = Dot(axes2d.c2p(0, 0), color=RED, radius=0.12)
+        cam_lbl = Text("камера", font_size=18, color=RED).next_to(cam_dot, LEFT, buff=0.15)
+
+        # Screen plane at Z = focal
+        screen_line = Line(axes2d.c2p(-2, focal), axes2d.c2p(2, focal), color=BLUE, stroke_width=3)
+        screen_lbl = Text("экран (Z=f)", font_size=18, color=BLUE).next_to(screen_line, RIGHT, buff=0.1)
+
+        # 3D Point P
+        p_dot = Dot(axes2d.c2p(point_x, point_z), color=GREEN, radius=0.1)
+        p_lbl = Text("P(X, Z)", font_size=18, color=GREEN).next_to(p_dot, RIGHT, buff=0.1)
+
+        # Ray from camera through P to screen
+        proj_x = (point_x * focal) / point_z
+        proj_dot = Dot(axes2d.c2p(proj_x, focal), color=YELLOW, radius=0.1)
+        proj_lbl = Text("x_proj", font_size=18, color=YELLOW).next_to(proj_dot, UP, buff=0.1)
+
+        ray = DashedLine(axes2d.c2p(0, 0), axes2d.c2p(point_x, point_z), color=GREY_B)
+
+        self.play(FadeIn(cam_dot), Write(cam_lbl))
+        self.play(Create(screen_line), Write(screen_lbl))
+        self.play(FadeIn(p_dot), Write(p_lbl))
+        self.play(Create(ray))
+        self.play(FadeIn(proj_dot), Write(proj_lbl))
+
+        # Similar triangles formula
+        formula = MathTex(
+            r"\frac{x_{proj}}{f} = \frac{X}{Z} \implies x_{proj} = \frac{X \cdot f}{Z}",
+            font_size=30
+        ).next_to(title, DOWN, buff=0.35).shift(LEFT * 1)
+        self.play(Write(formula))
+        self.wait(1)
+
+        # Show effect of focal length
+        focal_label = Text("focal_length влияет на угол обзора (FOV):", font_size=20, color=GREY_B)
+        focal_label.next_to(formula, DOWN, buff=0.3).shift(LEFT * 0.5)
+        self.play(Write(focal_label))
+
+        # Final screen coordinate formula
+        screen_formula = MathTex(
+            r"screen\_x = \frac{W}{2} + x_{proj}",
+            font_size=28, color=WHITE
+        ).next_to(focal_label, DOWN, buff=0.25)
+        self.play(Write(screen_formula))
+
+        # Code box
+        code_box = make_code_box(CODE_PROJECTION, highlight_lines=[1, 2, 4, 5])
+        self.play(FadeIn(code_box))
+        self.wait(3)
+
+        self.play(FadeOut(VGroup(title, axes2d, x_ax_lbl, z_ax_lbl,
+                                  cam_dot, cam_lbl, screen_line, screen_lbl,
+                                  p_dot, p_lbl, ray, proj_dot, proj_lbl,
+                                  formula, focal_label, screen_formula, code_box)))
 
     def act_stub(self, title_str, code_str, highlight_lines):
         title = Text(title_str, font_size=32, color=BLUE).to_edge(UP)
