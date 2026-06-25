@@ -150,7 +150,7 @@ class CameraPipelineScene(ThreeDScene):
 
         # Rotation matrix formula
         matrix = MathTex(
-            r"R_y = \begin{pmatrix} \cos\theta & 0 & \sin\theta \\ 0 & 1 & 0 \\ -\sin\theta & 0 & \cos\theta \end{pmatrix}",
+            r"R_y = \begin{pmatrix} \cos\theta & 0 & -\sin\theta \\ 0 & 1 & 0 \\ \sin\theta & 0 & \cos\theta \end{pmatrix}",
             font_size=28
         ).next_to(title, DOWN, buff=0.35).shift(LEFT * 1.5)
         self.play(Write(matrix))
@@ -303,9 +303,3 @@ class CameraPipelineScene(ThreeDScene):
                                   p_dot, p_lbl, ray, proj_dot, proj_lbl,
                                   formula, focal_label, screen_formula, code_box)))
 
-    def act_stub(self, title_str, code_str, highlight_lines):
-        title = Text(title_str, font_size=32, color=BLUE).to_edge(UP)
-        code_box = make_code_box(code_str, highlight_lines)
-        self.play(Write(title), FadeIn(code_box))
-        self.wait(2)
-        self.play(FadeOut(title), FadeOut(code_box))
