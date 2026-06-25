@@ -4,6 +4,7 @@ import numpy as np
 import my_math
 from objects.cube import Cube
 from objects.camera import Camera
+from objects.player import Player
 from objects.surface import Surface
 from objects.tesseract import Tesseract
 from pygame_ext.renderer_3d import Renderer3D
@@ -48,8 +49,13 @@ cube3 = Cube(np.array([35, 40, 255]), np.array([0, 0, 20], dtype=float), 10)
 surface = Surface(np.array([35, 40, 80]), np.array([0, -5, 0], dtype=float), 50, 2)
 tesseract = Tesseract(np.array([20, 255, 30]), np.array([0, 0, 120, 0], dtype=float), 5)
 
+objects: list = [cube1, cube2, cube3, surface, tesseract]
+
 renderer_3d = Renderer3D(SCREEN_WIDTH, SCREEN_HEIGHT)
 camera = Camera(pos=np.array([0.0, 0.0, 0.0], dtype=float), focal_length=400.0)
+player = Player(pos=np.array([0.0, 15.0, 0.0], dtype=float), camera=camera, objects=objects)
+
+
 # Главный цикл
 running = True
 while running:
@@ -68,8 +74,8 @@ while running:
     mouse_dx, mouse_dy = pygame.mouse.get_rel()
 
     # Передаем всё это камере — пускай сама разбирается!
-    camera.handle_input(keys, mouse_dx, mouse_dy)
-    camera.update()
+    player.handle_input(keys, mouse_dx, mouse_dy)
+    player.update()
 
     # 3. Очистка экрана (заливаем черным каждый кадр)
     screen.fill(BLACK)
@@ -95,15 +101,12 @@ while running:
     # POINTS_COORDS6 += camera_velocity
     # POINTS_COORDS7 += camera_velocity
     # POINTS_COORDS8 += camera_velocity
-    renderer_3d.add_queue_render_task(cube1, screen, FOCAL, camera.pos, camera.yaw, camera.pitch)
     cube1.rotate_in(my_math.grad2rad(1))
-    renderer_3d.add_queue_render_task(cube2, screen, FOCAL, camera.pos, camera.yaw, camera.pitch)
     cube2.rotate_in(0, my_math.grad2rad(1))
-    renderer_3d.add_queue_render_task(cube3, screen, FOCAL, camera.pos, camera.yaw, camera.pitch)
     cube3.rotate_in(0, 0, my_math.grad2rad(1))
-    renderer_3d.add_queue_render_task(tesseract, screen, FOCAL, camera.pos, camera.yaw, camera.pitch)
     tesseract.rotate_in(hyper_yaw=0.01, hyper_roll=0.005)
-    renderer_3d.add_queue_render_task(surface, screen, FOCAL, camera.pos, camera.yaw, camera.pitch)
+    for object in objects:
+        renderer_3d.add_queue_render_task(object, screen, FOCAL, camera.pos, camera.yaw, camera.pitch)
 
     renderer_3d.draw_objects()
 
@@ -111,16 +114,25 @@ while running:
     camera_pos_text = f"camera_pos: {np.round(camera.pos, 2)}"
     camera_rotate_text = f"camera_yaw: {round(my_math.rad2grad(camera.yaw), 2)}° camera_pitch: {round(my_math.rad2grad(camera.pitch), 2)}°"
     focal_text = f"focal_lenght: {FOCAL}"
+    velocity_text = f"velocity: {np.round(player._velocity, 2)}"
+    is_falling_text = f"is_falling: {player._is_falling}"
+    is_jump_text = f"is_jump: {player._is_jump}"
 
     fps_surface = hud_font.render(fps_text, True, WHITE)
     camera_pos_surface = hud_font.render(camera_pos_text, True, WHITE)
     camera_rotate_surface = hud_font.render(camera_rotate_text, True, WHITE)
     focal_surface = hud_font.render(focal_text, True, WHITE)
+    velocity_surface = hud_font.render(velocity_text, True, WHITE)
+    is_falling_surface = hud_font.render(is_falling_text, True, WHITE)
+    is_jump_surface = hud_font.render(is_jump_text, True, WHITE)
 
     screen.blit(fps_surface, (0, 20))
     screen.blit(camera_pos_surface, (0, 40))
     screen.blit(camera_rotate_surface, (0, 60))
     screen.blit(focal_surface, (0, 80))
+    screen.blit(velocity_surface, (0, 100))
+    screen.blit(is_falling_surface, (0, 120))
+    screen.blit(is_jump_surface, (0, 140))
 
     # 4. Обновление экрана
     pygame.display.flip()

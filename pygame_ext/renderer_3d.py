@@ -43,6 +43,7 @@ def _clip_line(A: np.ndarray, B: np.ndarray) -> tuple[np.ndarray | None, np.ndar
 
 
 class Renderer3D:
+    
     def __init__(self, screen_width, screen_height):
         self._screen_width, self._screen_height = screen_width, screen_height
         self._queue_render_task: list = []
@@ -51,6 +52,9 @@ class Renderer3D:
         self._queue_render_task.append((obj, screen, focal_lenght, camera_pos, angle_yaw, angle_pitch))
 
     def draw_objects(self):
+        light_dir = np.array([0, 20, 0])
+        light_dir = light_dir / np.linalg.norm(light_dir) 
+
         distances_and_id: list[list] = []
         for i, render_task in enumerate(self._queue_render_task):
             obj, screen, _, camera_pos, angle_yaw, angle_pitch = render_task
@@ -73,7 +77,7 @@ class Renderer3D:
             edges = obj.get_edges()
 
             if faces:
-                for face in faces:
+                for j, face in enumerate(faces):
                     # Шаг 2: собираем вершины грани в пространстве камеры
                     face_cam = [cam_coords[i] for i in face]
 
@@ -87,7 +91,11 @@ class Renderer3D:
                         camera_to_screen(c, focal, self._screen_width, self._screen_height)
                         for c in clipped
                     ]
-                    pygame.draw.polygon(screen, obj.get_color(), screen_pts)
+                    normal = obj.get_facets_normals()[j] / np.linalg.norm(obj.get_facets_normals()[j])
+                    ambient = 0.7  # минимум 20% яркости всегда
+                    intensity = max(0, np.dot(normal, light_dir))
+                    color = np.clip(obj.get_color() * (ambient + intensity * (1 - ambient)), 0, 255)
+                    pygame.draw.polygon(screen, color, screen_pts)
             else:
                 for edge in edges:
                     A, B = _clip_line(cam_coords[edge[0]], cam_coords[edge[1]])
