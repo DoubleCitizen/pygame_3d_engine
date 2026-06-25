@@ -110,11 +110,66 @@ class CameraPipelineScene(ThreeDScene):
 
     # ------------------------------------------------------------------
     def act_yaw(self):
-        self.act_stub(
-            "Шаг 2: Поворот Yaw (вокруг Y)",
-            CODE_YAW,
-            highlight_lines=[3, 4, 5],
+        title = Text("Шаг 2: Поворот Yaw (вокруг Y)", font_size=32, color=BLUE)
+        title.to_edge(UP)
+        self.play(Write(title))
+
+        # Top-down 2D view: XZ plane
+        axes2d = Axes(
+            x_range=[-3, 3], y_range=[-3, 3],
+            x_length=5, y_length=5,
+            axis_config={"color": GREY, "include_tip": True},
         )
+        axes2d.scale(0.75).to_edge(LEFT, buff=0.5)
+        x_lbl = Text("X", font_size=20).next_to(axes2d.x_axis.get_end(), RIGHT, buff=0.1)
+        z_lbl = Text("Z", font_size=20).next_to(axes2d.y_axis.get_end(), UP, buff=0.1)
+        view_lbl = Text("Вид сверху (XZ)", font_size=20, color=GREY_B).next_to(axes2d, DOWN, buff=0.2)
+
+        self.play(Create(axes2d), Write(x_lbl), Write(z_lbl), Write(view_lbl))
+
+        # Forward arrow at yaw=0 (pointing along +Z, i.e. up in XZ view)
+        yaw_tracker = ValueTracker(0)
+        forward_arrow = always_redraw(lambda: Arrow(
+            start=axes2d.c2p(0, 0),
+            end=axes2d.c2p(
+                -np.sin(yaw_tracker.get_value()) * 2,
+                 np.cos(yaw_tracker.get_value()) * 2
+            ),
+            color=YELLOW, buff=0, stroke_width=4
+        ))
+        point_dot = always_redraw(lambda: Dot(
+            axes2d.c2p(
+                -np.sin(yaw_tracker.get_value()) * 1.5,
+                 np.cos(yaw_tracker.get_value()) * 1.5
+            ),
+            color=GREEN, radius=0.1
+        ))
+        forward_lbl = Text("вперёд", font_size=18, color=YELLOW).next_to(forward_arrow, UP, buff=0.1)
+
+        self.play(GrowArrow(forward_arrow), FadeIn(point_dot), Write(forward_lbl))
+
+        # Rotation matrix formula
+        matrix = MathTex(
+            r"R_y = \begin{pmatrix} \cos\theta & 0 & \sin\theta \\ 0 & 1 & 0 \\ -\sin\theta & 0 & \cos\theta \end{pmatrix}",
+            font_size=28
+        ).next_to(title, DOWN, buff=0.35).shift(LEFT * 1.5)
+        self.play(Write(matrix))
+
+        # Animate yaw rotation
+        self.play(yaw_tracker.animate.set_value(PI / 3), run_time=2, rate_func=smooth)
+        self.wait(0.5)
+        self.play(yaw_tracker.animate.set_value(-PI / 4), run_time=1.5, rate_func=smooth)
+        self.wait(0.5)
+        self.play(yaw_tracker.animate.set_value(0), run_time=1, rate_func=smooth)
+
+        # Code box
+        code_box = make_code_box(CODE_YAW, highlight_lines=[3, 4, 5])
+        self.play(FadeIn(code_box))
+        self.wait(2)
+
+        self.play(FadeOut(VGroup(title, axes2d, x_lbl, z_lbl, view_lbl,
+                                  forward_arrow, point_dot, forward_lbl,
+                                  matrix, code_box)))
 
     def act_pitch(self):
         self.act_stub(
