@@ -51,17 +51,17 @@ class BaseObjects3D:
         for i in range(len(self._coords_local)):
             X, Y, Z = self._coords_local[i]
 
-            X_new = X * np.cos(yaw) - Z * np.sin(yaw)
-            Z_new = X * np.sin(yaw) + Z * np.cos(yaw)
-            X, Z = X_new, Z_new
+            i_v = np.array([np.cos(yaw), np.sin(yaw)])
+            j_v = np.array([-np.sin(yaw), np.cos(yaw)])
+            X, Z = X * i_v + Z * j_v
 
-            Y_new = Y * np.cos(pitch) - Z * np.sin(pitch)
-            Z_new = Y * np.sin(pitch) + Z * np.cos(pitch)
-            Y, Z = Y_new, Z_new
+            i_v = np.array([np.cos(pitch), np.sin(pitch)])
+            j_v = np.array([-np.sin(pitch), np.cos(pitch)])
+            Y, Z = Y * i_v + Z * j_v
 
-            Y_new = Y * np.cos(roll) - X * np.sin(roll)
-            X_new = Y * np.sin(roll) + X * np.cos(roll)
-            Y, X = Y_new, X_new
+            i_v = np.array([np.cos(roll), np.sin(roll)])
+            j_v = np.array([-np.sin(roll), np.cos(roll)])
+            Y, X = Y * i_v + X * j_v
 
             Pworld_new = np.array([X, Y, Z], dtype=float) + self._pos
             self._coords[i] = Pworld_new
